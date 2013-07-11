@@ -1,25 +1,17 @@
-/************************************************************************
- *
- *                    File Transfer for Nintendo DS
- *                   ---------------------------------
- *           (C) Copyright 2009,2013 by Minsuk Lee, Seoul, Korea
- *                      All Rights Reserved.
- *
- ************************************************************************/
-
-/* FILE        : xfer.c
- *
- * Description : File Transfer
- *
- * Created - 2009-12-27 by Minsuk Lee
- * Revised - 2013-07-10 by Minsuk Lee - P2P server based transfer
- *         - 2009-XX-XX
- * Read    - 2009-XX-XX
- */
+ /*
+  *  xfer.h
+  *
+  *  p2p-relay based file tranfer
+  *
+  *  Copyright (C) 2009-2013  Minsuk Lee, Hansung University
+  *
+  *  2009-12-27  Created
+  *  2009-01-21  Read
+  *  2013-07-10  Windows Client Only
+  */ 
 
 #include <winsock2.h>
 #include <windows.h>
-//#include <ws2tcpip.h>
 #include <stdlib.h>
 #include <conio.h>
 #include <stdio.h>
@@ -35,45 +27,6 @@ static SOCKET data_socket;
 static unsigned char    BUF[BUF_SIZE];
 static struct header    FHeader;
 static struct response  FResp;
-
-char *Target;   // IP address or host for 't', COMx for 's'
-int   Port;     // TCP port number for 
-
-int
-connect_nds()
-{
-    SOCKADDR_IN nds_sin;
-    WSADATA wsaData;
-
-    if (WSAStartup(MAKEWORD(2,2), &wsaData) != NO_ERROR) {
-        fprintf(stderr, "Error at WSAStartup()\n");
-        return -1;
-    }
-
-    if ((data_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == INVALID_SOCKET) {
-        fprintf(stderr, "Error at socket(): %ld\n", WSAGetLastError());
-        return -1;
-    }
-
-    nds_sin.sin_family = AF_INET;
-    nds_sin.sin_addr.s_addr = inet_addr(Target);
-    nds_sin.sin_port = htons(Port);
-
-    if (connect(data_socket, (SOCKADDR*)&nds_sin, sizeof(nds_sin)) == SOCKET_ERROR) {
-        printf("Failed to connect Nintendo thru %s:%d errorcode:%d.\n", Target, Port, WSAGetLastError());
-        closesocket(data_socket);
-        return -1;
-    }
-    printf("Connection Made to %s:%d\n", Target, Port);
-    return 0;
-}
-
-void
-disconnect_nds()
-{
-    closesocket(data_socket);
-    WSACleanup();
-}
 
 int
 send_data(unsigned char *buf, int len)
@@ -110,30 +63,68 @@ recv_data(unsigned char *buf, int count)
     return tread;
 }
 
+void
+disconnect_nds()
+{
+    closesocket(data_socket);
+    WSACleanup();
+}
+
+int
+connect_nds(char *target, int port, char *userid)
+{
+    SOCKADDR_IN nds_sin;
+    WSADATA wsaData;
+
+    if (WSAStartup(MAKEWORD(2,2), &wsaData) != NO_ERROR) {
+        fprintf(stderr, "Error at WSAStartup()\n");
+        return -1;
+    }
+
+    if ((data_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == INVALID_SOCKET) {
+        fprintf(stderr, "Error at socket(): %ld\n", WSAGetLastError());
+        return -1;
+    }
+
+    nds_sin.sin_family = AF_INET;
+    nds_sin.sin_addr.s_addr = inet_addr(target);
+    nds_sin.sin_port = htons(port);
+
+    if (connect(data_socket, (SOCKADDR*)&nds_sin, sizeof(nds_sin)) == SOCKET_ERROR) {
+        printf("Failed to connect Nintendo thru %s:%d errorcode:%d.\n", target, port, WSAGetLastError());
+        closesocket(data_socket);
+        return -1;
+    }
+    sprintf(BUF, "D %s\n", userid);
+    send_data(BUF, strlen(BUF));
+    printf("Connection Made to %s:%d\n", target, port);
+    return 0;
+}
+
 int
 main(int argc, char* argv[])
 {
     FILE *f2send;
     char *fname;
 
+    int port;     // TCP port number
     int total_sent, size, ret, i, checksum;
 
-    printf("Downloader for Dall Shell\n(c) Copyright 2013, ");
+    printf("Downloader (to Nintendo)\n(c) Copyright 2013, ");
     printf("by Minsuk Lee (minsuk@hansung.ac.kr)\n");
 
-	if ((argc != 3) && (argc != 4)) {
-usage:  fprintf(stderr, "usage: %s FILENAME ip_address port\n", argv[0]);
+	if ((argc != 4) && (argc != 5)) {
+usage:  fprintf(stderr, "usage: %s FILENAME userid ip_address [port]\n", argv[0]);
         return -1;
     }
 
-    Target = argv[2];
-    if (argc == 4) {
-        if (sscanf(argv[3], "%d", &Port) != 1) {
+    if (argc == 5) {
+        if (sscanf(argv[4], "%d", &port) != 1) {
             fprintf(stderr, "Invalid port number\n");
             goto usage;
         }
     } else
-        Port = DOWNLOAD_PORT;
+        port = DOWNLOAD_PORT;
 
     fname = strrchr(argv[1], '\\');
     if (fname) {
@@ -163,7 +154,7 @@ w_path: fname++;
 
     ret = -1;   // if return in error clause, ret = -1
 
-    if (connect_nds() < 0) {
+    if (connect_nds(argv[3], port, argv[2]) < 0) {
         goto leave0;
     }
     if (send_data(MAGIC_DOWNLOAD_STRING, MAGIC_LEN) != MAGIC_LEN) {

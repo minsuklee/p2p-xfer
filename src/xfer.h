@@ -1,21 +1,14 @@
-/************************************************************************
+/*
+ *  xfer.h
  *
- *                    Dall Shell for Nintendo DS
- *                   -----------------------------
- *           (C) Copyright 2009 by Minsuk Lee, Seoul, Korea
- *                      All Rights Reserved.
+ *  Header for p2p-relay based file tranfer
  *
- ************************************************************************/
-
-/* FILE        : download.h
+ *  Copyright (C) 2009-2013  Minsuk Lee, Hansung University
  *
- * Description : Dallshell Download Protocol Header
- *
- * Created - 2009-12-27 by Minsuk Lee
- * Revised - 2009-01-25 Enhance Error Processing by Minsuk Lee
- *         - 2009-XX-XX
- * Read    - 2009-01-21
- */
+ *  2009-12-27  Created
+ *  2009-01-21  Read
+ *  2009-01-25  Enhance Error Processing by Minsuk Lee
+ */ 
 
 // Download Port Number for TCP/IP connection
 
@@ -23,7 +16,7 @@
 
 // File Transfer protocol ---------------------------------------------
 
-#define MAX_FILE_SIZE           (2 * 1024 * 1024)
+#define MAX_FILE_SIZE           (2 * 1024 * 1024)   // Limited by Nintendo DSL
 #define MAGIC_LEN               16
 #define MAGIC_DOWNLOAD_STRING   "(&^@%=DALL=}`~+)"
 #define MAGIC_CLEANUP_STRING    ")+~`}=LLAD=%@^&("
