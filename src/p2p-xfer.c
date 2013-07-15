@@ -1,5 +1,5 @@
  /*
-  *  xfer.c
+  *  p2p-xfer.c
   *
   *  p2p-relay based file tranfer
   *

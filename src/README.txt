@@ -45,9 +45,9 @@ execution binary, which works as the receiver if the filename is '-'.
  where the port(TCP) is not blocked by Firewall,
  and the host is reachable by pucblic IP address.
 	
-2. xfer.c (Linux/Windows sender)
+2. p2p-xfer.c (Linux/Windows sender)
 
- xfer.c is a sample p2p-client appication to test p2p-relay.
+ p2p-xfer.c is a sample p2p-client appication to test p2p-relay.
  But it's still very useful to transfer files via p2p-relay.
 
  In linux, send_r, recv_r is the sender/receiver, in windows '.exe'
@@ -67,7 +67,7 @@ execution binary, which works as the receiver if the filename is '-'.
 --- summary in Korean (한글 요약)
  
 p2p-relay.c 는 리눅스용 p2p relay 서버 소스
-xfer.c는 Linux 및 윈도우즈용 파일 sender/receiver 소스
+p2p-xfer.c는 Linux 및 윈도우즈용 파일 sender/receiver 소스
 
 Linux에서는 make로 p2p-relay, send_r, recv_r 이 만들어지고,
 Windows에서는 Visual Studio Express로 xfer.exe를 만든 뒤
