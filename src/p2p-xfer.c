@@ -51,7 +51,7 @@
 
 // File Transfer protocol ---------------------------------------------
 
-#define MAX_FILE_SIZE   (2048 * 1024 * 1024)    // 2GB int type limited
+#define MAX_FILE_SIZE   (2047 * 1024 * 1024)    // 2GB int type limited
 
 #define MAX_FILE_NAME_LEN       32
 #define MAX_FILE_LENGTH_LEN     16
