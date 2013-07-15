@@ -1,6 +1,6 @@
 P2P-xfer is a simple / unsecure p2p (peer to peer) relay service.
 
-  Copyright (C) 2013,  Minsuk Lee (minsuk@hansug.ac.kr)
+  Copyright (C) 2013,  Minsuk Lee (minsuk@hansung.ac.kr)
   All rights reserved.
   This software is under BSD license. see LICENSE.txt
 
