@@ -1,3 +1,6 @@
+# This is Makefile for Linux Relay and clients
+# For Windows clients : compile p2p-xfer.c in Visual Studio
+
 all:	p2p-relay send_r
 p2p-relay:	p2p_relay.c
 	gcc -op2p-relay -g p2p_relay.c
