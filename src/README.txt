@@ -23,13 +23,13 @@ Here is the scenario.
 
 1. starts p2p-relay with public IP and firewall-free listening TCP port
 2. a host (A), being the server of the connection connects to the p2p-relay
-3. A send its UserID, as 'T<userid>$', to p2p-relay
+3. (A) send its UserID, as 'T<userid>$', to p2p-relay, and receive 'O'
 4. another host (B), being the client, connects to the p2p-relay
-5. B send A's UserID, as 'C<userid>$', to p2p-relay
-6. p2p-relay made logical connection between A and B
+5. (B) send A's UserID, as 'C<userid>$', to p2p-relay
+6. p2p-relay made logical connection between (A) and (B)
    if the userid is not on p2p-relay's list, reject B's connection request.
-7. p2p-relay starts relay data from A to B, and data B to A.
-8. if A or B close connection, p2p-relay close both connection.
+7. p2p-relay starts relay data from (A) to (B), and (B) to (A).
+8. if (A) or (B) close connection, p2p-relay close both connection.
 
 Build and running
 
@@ -63,6 +63,10 @@ execution binary, which works as the receiver if the filename is '-'.
  receiver. (This can be easily modified by changing matching logic)
  'v' option if to enable verbose mode, in which the sender/receiver
  shows version, copyright message and its progress.
+
+3. nds_recv.zip
+
+  p2p-xfer's nintendo homenrew porting
 
 --- summary in Korean (한글 요약)
  
