@@ -18,8 +18,8 @@
 #else
 #include <unistd.h>
 #include <arpa/inet.h>
-//#include <sys/types.h>
 #include <sys/socket.h>
+#include <netdb.h>
 #endif
 #include <sys/stat.h>
 #include <stdlib.h>
@@ -33,9 +33,9 @@
 #pragma warning(disable : 4996)     // disable security warning
 #endif
 
-#define VERSION_STR1    "File Transfer thru p2p Relay v0.1\n"
+#define VERSION_STR1    "File Transfer thru p2p Relay v0.9\n"
 #define VERSION_STR2    "(c) Copyright 2013, "
-#define VERSION_STR3    "by Minsuk Lee (minsuk@hansung.ac.kr)\n"
+#define VERSION_STR3    "Minsuk Lee (minsuk@hansung.ac.kr)\n"
 
 // Protocol Description
 
@@ -137,6 +137,7 @@ connect_relay(int sender, char *target, int port, char *userid)
     WSADATA wsaData;
 #endif
     SOCKADDR_IN relay_sin;
+    unsigned long haddr;
 
 #ifdef _WIN32
     if (WSAStartup(MAKEWORD(2,2), &wsaData) != NO_ERROR) {
@@ -150,15 +151,26 @@ connect_relay(int sender, char *target, int port, char *userid)
         return -1;
     }
 
+    if ((haddr = inet_addr(target)) == 0xffffffffL) {
+        struct hostent *hp;
+        if ((hp = gethostbyname(target)) == NULL) {
+            printf("\nCan resolve Relay Name\n");
+            return -1;
+        }
+        haddr = *(unsigned long *)(hp->h_addr_list[0]);
+    }
     relay_sin.sin_family = AF_INET;
-    relay_sin.sin_addr.s_addr = inet_addr(target);
+    relay_sin.sin_addr = *(struct in_addr *)&haddr;
     relay_sin.sin_port = htons(port);
 
     if (connect(data_socket, (SOCKADDR*)&relay_sin, sizeof(relay_sin)) == SOCKET_ERROR) {
-        printf("Failed to connect p2p_relay %s:%d\n", target, port);
+        printf("Failed to connect p2p_relay %s (%d)\n", target, port);
 leave:  disconnect();
         return -1;
     }
+    if (verbose)
+        printf("Connected to %s (%d) for %s file\n", inet_ntoa(relay_sin.sin_addr), port,
+            sender ? "Sending" : "Receiving");
     if (sender)
         sprintf(BUF, "C%s$", userid); // Connect to server with userid
     else
@@ -175,9 +187,6 @@ leave:  disconnect();
             goto leave;
         }
     }
-    if (verbose)
-        printf("Connection Made to %s:%d for %s file\n", target, port,
-            sender ? "Send" : "Receive");
     return 0;
 }
 
@@ -206,7 +215,7 @@ usage:  fprintf(stderr, "%s%s%s", VERSION_STR1, VERSION_STR2, VERSION_STR3);
         }
         argv0++;
 putit:  fprintf(stderr, "usage: %s %s userid ip_address port [v]\n",
-            argv0, (toupper(*argv0) == 'S') ? "filenae" : "-");
+            argv0, (toupper(*argv0) == 'S') ? "filename" : "-");
         return 1;
     }
 
@@ -320,7 +329,7 @@ w_path:     fname++;
             goto leave1;
         }
         if (verbose)
-            printf("Transfer file: '%s' (%sB) Done!\n", FHeader.filename, FHeader.filelength);
+            printf("Send file: '%s' (%sB) Done!\n", FHeader.filename, FHeader.filelength);
     } else { // I'm receiver
         // receive Header, put 'O', receive Data, Checkum, put 'O'
         if (recv_data((unsigned char *)&FHeader, HEADER_SIZE) != HEADER_SIZE) {
@@ -370,7 +379,7 @@ w_path:     fname++;
             printf("\rFile Data Received\n");
         }
 
-        if (ret = recv_data(BUF, CHECKSUM_LEN) != CHECKSUM_LEN)
+        if ((ret = recv_data(BUF, CHECKSUM_LEN)) != CHECKSUM_LEN)
             goto sum_e;
         if (sscanf((char *)BUF, "%d", &ret) != 1)
             goto sum_e;
@@ -381,7 +390,9 @@ leave2:     send_data("X", RESP_CODE_LEN);
         }
         send_data("O", RESP_CODE_LEN);
         if (verbose)
-            printf("Checksum OK .. Done\n");
+            printf("Checksum OK\n");
+        if (verbose)
+            printf("Receive file: '%s' (%sB) Done!\n", FHeader.filename, FHeader.filelength);
     }
     ret = 0;
 leave1:
